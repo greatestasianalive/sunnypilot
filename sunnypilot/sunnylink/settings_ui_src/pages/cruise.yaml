@@ -62,6 +62,12 @@ sections:
       label: Sport
     enablement:
     - $ref: '#/macros/longitudinal'
+  - key: RadarDistance
+    widget: toggle
+    title: Radar Lead Smoothing
+    description: Holds radar leads through brief dropouts, ignores close-range radar ghosts, and eases braking when the radar lead target jumps, for smoother lead following. Emergency braking is unaffected.
+    enablement:
+    - $ref: '#/macros/longitudinal'
   - key: IntelligentCruiseButtonManagement
     widget: toggle
     title: Intelligent Cruise Button Management (ICBM) (Alpha)

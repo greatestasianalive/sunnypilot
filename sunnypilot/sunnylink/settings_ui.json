@@ -667,6 +667,19 @@
               ]
             },
             {
+              "key": "RadarDistance",
+              "widget": "toggle",
+              "title": "Radar Lead Smoothing",
+              "description": "Holds radar leads through brief dropouts, ignores close-range radar ghosts, and eases braking when the radar lead target jumps, for smoother lead following. Emergency braking is unaffected.",
+              "enablement": [
+                {
+                  "type": "capability",
+                  "field": "has_longitudinal_control",
+                  "equals": true
+                }
+              ]
+            },
+            {
               "key": "IntelligentCruiseButtonManagement",
               "widget": "toggle",
               "title": "Intelligent Cruise Button Management (ICBM) (Alpha)",
