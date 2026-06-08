@@ -110,7 +110,7 @@ class LongitudinalPlanner(LongitudinalPlannerSP):
     # No change cost when user is controlling the speed, or when standstill
     prev_accel_constraint = not (reset_state or sm['carState'].standstill)
 
-    accel_clip = [ACCEL_MIN, get_max_accel(v_ego)]
+    accel_clip = [ACCEL_MIN, self.accel.get_max_accel(v_ego)]
     steer_angle_without_offset = sm['carState'].steeringAngleDeg - sm['liveParameters'].angleOffsetDeg
     accel_clip = limit_accel_in_turns(v_ego, steer_angle_without_offset, accel_clip, self.CP)
 
@@ -169,8 +169,13 @@ class LongitudinalPlanner(LongitudinalPlannerSP):
       output_a_target = output_a_target_mpc
       self.output_should_stop = output_should_stop_mpc
 
-    for idx in range(2):
-      accel_clip[idx] = np.clip(accel_clip[idx], self.prev_accel_clip[idx] - 0.05, self.prev_accel_clip[idx] + 0.05)
+    output_a_target = self.accel.smooth_target_accel(output_a_target, self.a_desired_trajectory, CONTROL_N_T_IDX,
+                                                     self.output_should_stop or force_slow_decel, reset=reset_state)
+
+    # Lower (braking) bound and the ceiling's downward slew stay at the stock rate; only the ceiling's
+    # upward slew is tier-dependent (Acceleration Personality).
+    accel_clip[0] = np.clip(accel_clip[0], self.prev_accel_clip[0] - 0.05, self.prev_accel_clip[0] + 0.05)
+    accel_clip[1] = np.clip(accel_clip[1], self.prev_accel_clip[1] - 0.05, self.prev_accel_clip[1] + self.accel.get_rise_rate())
     self.output_a_target = np.clip(output_a_target, accel_clip[0], accel_clip[1])
     self.prev_accel_clip = accel_clip
 

@@ -70,6 +70,9 @@ def get_jerk_factor(personality=log.LongitudinalPersonality.standard):
     raise NotImplementedError("Longitudinal personality not supported")
 
 
+T_FOLLOW_MIN = 0.9  # safety floor for follow time after any sunnypilot tier offset
+
+
 def get_T_FOLLOW(personality=log.LongitudinalPersonality.standard):
   if personality==log.LongitudinalPersonality.relaxed:
     return 1.75

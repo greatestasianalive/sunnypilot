@@ -1,6 +1,6 @@
 Version 0.11.2 (2026-06-15)
 ========================
-
+* Acceleration Profile: select Eco, Normal, or Sport personality to shape acceleration briskness and gentle (ACC) deceleration
 
 Version 0.11.1 (2026-05-18)
 ========================
