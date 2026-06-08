@@ -22,15 +22,15 @@ A_CRUISE_MAX_BP = [0., 10., 25., 40.]
 STOCK_A_CRUISE_MAX_V = [1.6, 1.2, 0.8, 0.6]
 STOCK_RISE_RATE = 0.05
 
-# Eco keeps launch near stock and mainly softens cruise/highway roll-on.
+# Eco softens launch and cruise/highway roll-on.
 A_CRUISE_MAX_V = {
-  ECO:    [1.6, 1.10, 0.55, 0.40],
+  ECO:    [1.25, 0.90, 0.45, 0.30],
   NORMAL: STOCK_A_CRUISE_MAX_V,
   SPORT:  [1.8, 1.40, 1.00, 0.75],
 }
 
 RISE_RATE = {
-  ECO:    0.025,
+  ECO:    0.02,
   NORMAL: STOCK_RISE_RATE,
   SPORT:  0.10,
 }
@@ -50,6 +50,11 @@ BRAKE_DEEPENING_JERK = {
 }
 
 BRAKE_RELEASE_JERK = 2.0
+ACCEL_RISE_JERK = {
+  ECO:    0.6,
+  NORMAL: BRAKE_RELEASE_JERK,
+  SPORT:  BRAKE_RELEASE_JERK,
+}
 SMOOTH_DECEL_LOOKAHEAD_T = 2.5
 MIN_SMOOTH_BRAKE_NEED = 0.05
 HARD_BRAKE_TARGET_ACCEL = -2.0

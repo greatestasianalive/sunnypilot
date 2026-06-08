@@ -4,7 +4,7 @@ import pytest
 from openpilot.sunnypilot.selfdrive.controls.lib.accel_personality.accel_controller import AccelController
 from openpilot.sunnypilot.selfdrive.controls.lib.accel_personality.constants import \
   AccelerationPersonality, ECO, NORMAL, SPORT, STOCK_RISE_RATE, SMOOTH_DECEL_BP, SMOOTH_DECEL_V, BRAKE_DEEPENING_JERK, \
-  BRAKE_RELEASE_JERK, HARD_BRAKE_TARGET_ACCEL, HARD_BRAKE_NEED
+  BRAKE_RELEASE_JERK, ACCEL_RISE_JERK, HARD_BRAKE_TARGET_ACCEL, HARD_BRAKE_NEED
 from openpilot.common.realtime import DT_MDL
 
 # Stock openpilot accel ceiling, duplicated independently here so the test fails if the normal tier ever drifts.
@@ -106,6 +106,7 @@ def test_profile_jerk_limits_match_plan():
   assert BRAKE_DEEPENING_JERK[NORMAL] == pytest.approx(0.9)
   assert BRAKE_DEEPENING_JERK[SPORT] == pytest.approx(1.1)
   assert BRAKE_RELEASE_JERK == pytest.approx(2.0)
+  assert ACCEL_RISE_JERK[ECO] < ACCEL_RISE_JERK[NORMAL]
 
 
 def test_zero_accel_outputs_positive_zero(mock_cp, mock_mpc):
@@ -145,6 +146,24 @@ def test_brake_release_is_faster_than_deepening(mock_cp, mock_mpc):
 
   assert out == pytest.approx(-1.0 + BRAKE_RELEASE_JERK * DT_MDL)
   assert BRAKE_RELEASE_JERK > BRAKE_DEEPENING_JERK[NORMAL]
+
+
+def test_eco_positive_accel_rise_is_smooth(mock_cp, mock_mpc):
+  c = AccelController(mock_cp, mock_mpc, params=MockParams(enabled=True, personality=ECO))
+  c.smooth_target_accel(0.0, [0.0], [0.0], should_stop=False, reset=True)
+
+  out = c.smooth_target_accel(1.0, [1.0], [0.0], should_stop=False)
+
+  assert out == pytest.approx(ACCEL_RISE_JERK[ECO] * DT_MDL)
+
+
+def test_eco_brake_release_does_not_jump_to_gas(mock_cp, mock_mpc):
+  c = AccelController(mock_cp, mock_mpc, params=MockParams(enabled=True, personality=ECO))
+  c.smooth_target_accel(-0.01, [-0.01], [0.0], should_stop=False, reset=True)
+
+  out = c.smooth_target_accel(1.0, [1.0], [0.0], should_stop=False)
+
+  assert out == pytest.approx(ACCEL_RISE_JERK[ECO] * DT_MDL)
 
 
 @pytest.mark.parametrize("raw_target, accel_trajectory, should_stop, crash_cnt", [

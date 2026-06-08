@@ -16,7 +16,8 @@ from openpilot.common.realtime import DT_MDL
 from openpilot.sunnypilot import get_sanitize_int_param
 from openpilot.sunnypilot.selfdrive.controls.lib.accel_personality.constants import \
   NORMAL, PERSONALITY_MIN, PERSONALITY_MAX, A_CRUISE_MAX_BP, A_CRUISE_MAX_V, RISE_RATE, SMOOTH_DECEL_BP, SMOOTH_DECEL_V, \
-  BRAKE_DEEPENING_JERK, BRAKE_RELEASE_JERK, SMOOTH_DECEL_LOOKAHEAD_T, MIN_SMOOTH_BRAKE_NEED, HARD_BRAKE_TARGET_ACCEL, HARD_BRAKE_NEED
+  BRAKE_DEEPENING_JERK, BRAKE_RELEASE_JERK, ACCEL_RISE_JERK, SMOOTH_DECEL_LOOKAHEAD_T, MIN_SMOOTH_BRAKE_NEED, \
+  HARD_BRAKE_TARGET_ACCEL, HARD_BRAKE_NEED
 
 _ZERO_ACCEL_EPS = 1e-6
 
@@ -97,11 +98,24 @@ class AccelController:
     return target_accel
 
   def _slew(self, target_accel: float) -> float:
-    rate = BRAKE_DEEPENING_JERK[self._personality] if target_accel < self._last_target_accel else BRAKE_RELEASE_JERK
-    step = rate * DT_MDL
-    smoothed = self._clean_accel(float(np.clip(target_accel, self._last_target_accel - step, self._last_target_accel + step)))
+    target_accel = float(target_accel)
+    if target_accel > self._last_target_accel:
+      smoothed = self._slew_up(target_accel)
+    else:
+      step = BRAKE_DEEPENING_JERK[self._personality] * DT_MDL
+      smoothed = self._clean_accel(max(target_accel, self._last_target_accel - step))
     self._last_target_accel = smoothed
     return smoothed
+
+  def _slew_up(self, target_accel: float) -> float:
+    if self._last_target_accel < 0.0:
+      released = min(target_accel, self._last_target_accel + BRAKE_RELEASE_JERK * DT_MDL)
+      if released <= 0.0:
+        return self._clean_accel(released)
+      return self._clean_accel(min(target_accel, ACCEL_RISE_JERK[self._personality] * DT_MDL))
+
+    step = ACCEL_RISE_JERK[self._personality] * DT_MDL
+    return self._clean_accel(min(target_accel, self._last_target_accel + step))
 
   @staticmethod
   def _clean_accel(accel: float) -> float:
