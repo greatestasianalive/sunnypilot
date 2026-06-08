@@ -166,6 +166,26 @@ def test_eco_brake_release_does_not_jump_to_gas(mock_cp, mock_mpc):
   assert out == pytest.approx(ACCEL_RISE_JERK[ECO] * DT_MDL)
 
 
+def test_blended_stock_brake_passthrough(mock_cp, mock_mpc):
+  c = AccelController(mock_cp, mock_mpc, params=MockParams(enabled=True, personality=ECO))
+  c.smooth_target_accel(0.0, [0.0], [0.0], should_stop=False, reset=True)
+
+  out = c.smooth_target_accel(-1.0, [-1.0], [0.0], should_stop=False, stock_brake=True)
+
+  assert out == pytest.approx(-1.0)
+  assert not c.smooth_active()
+
+
+def test_blended_future_brake_need_passthrough(mock_cp, mock_mpc):
+  c = AccelController(mock_cp, mock_mpc, params=MockParams(enabled=True, personality=ECO))
+  c.smooth_target_accel(0.0, [0.0], [0.0], should_stop=False, reset=True)
+
+  out = c.smooth_target_accel(0.1, [0.1, -1.0], [0.0, 1.0], should_stop=False, stock_brake=True)
+
+  assert out == pytest.approx(0.1)
+  assert not c.smooth_active()
+
+
 @pytest.mark.parametrize("raw_target, accel_trajectory, should_stop, crash_cnt", [
   (HARD_BRAKE_TARGET_ACCEL - 0.1, [-0.5], False, 0),
   (-0.5, [-HARD_BRAKE_NEED], False, 0),

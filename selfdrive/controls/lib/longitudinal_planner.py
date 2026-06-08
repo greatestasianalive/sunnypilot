@@ -161,7 +161,8 @@ class LongitudinalPlanner(LongitudinalPlannerSP):
     output_a_target_e2e = sm['modelV2'].action.desiredAcceleration
     output_should_stop_e2e = sm['modelV2'].action.shouldStop
 
-    if self.is_e2e(sm):
+    is_e2e = self.is_e2e(sm)
+    if is_e2e:
       output_a_target = min(output_a_target_e2e, output_a_target_mpc)
       self.output_should_stop = output_should_stop_e2e or output_should_stop_mpc
       if output_a_target < output_a_target_mpc:
@@ -171,7 +172,7 @@ class LongitudinalPlanner(LongitudinalPlannerSP):
       self.output_should_stop = output_should_stop_mpc
 
     output_a_target = self.accel.smooth_target_accel(output_a_target, self.a_desired_trajectory, CONTROL_N_T_IDX,
-                                                     self.output_should_stop or force_slow_decel, reset=reset_state)
+                                                     self.output_should_stop or force_slow_decel, reset=reset_state, stock_brake=is_e2e)
 
     # Lower (braking) bound and the ceiling's downward slew stay at the stock rate; only the ceiling's
     # upward slew is tier-dependent (Acceleration Personality).

@@ -61,11 +61,15 @@ class AccelController:
     return float(np.interp(max(0.0, float(brake_need)), SMOOTH_DECEL_BP, SMOOTH_DECEL_V[self._personality]))
 
   def smooth_target_accel(self, raw_target_accel: float, accel_trajectory: Sequence[float], t_idxs: Sequence[float],
-                          should_stop: bool, reset: bool = False) -> float:
+                          should_stop: bool, reset: bool = False, stock_brake: bool = False) -> float:
     raw_target_accel = float(raw_target_accel)
     self._brake_need = self._compute_brake_need(raw_target_accel, accel_trajectory, t_idxs)
 
     if reset or not self._enabled:
+      self._bypassed = False
+      return self._passthrough(raw_target_accel)
+
+    if stock_brake and (raw_target_accel < 0.0 or self._brake_need >= MIN_SMOOTH_BRAKE_NEED):
       self._bypassed = False
       return self._passthrough(raw_target_accel)
 
