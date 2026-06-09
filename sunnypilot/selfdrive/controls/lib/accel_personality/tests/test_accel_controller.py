@@ -138,6 +138,15 @@ def test_brake_deepening_is_jerk_limited(mock_cp, mock_mpc):
   assert out == pytest.approx(-BRAKE_DEEPENING_JERK[NORMAL] * DT_MDL)
 
 
+def test_smoothing_never_reduces_raw_planner_braking(mock_cp, mock_mpc):
+  c = AccelController(mock_cp, mock_mpc, params=MockParams(enabled=True, personality=ECO))
+  c.smooth_target_accel(-0.7, [-0.7], [0.0], should_stop=False, reset=True)
+
+  out = c.smooth_target_accel(-0.7, [0.0, -0.5], [0.0, 1.0], should_stop=False)
+
+  assert out == pytest.approx(-0.7)
+
+
 def test_brake_release_is_faster_than_deepening(mock_cp, mock_mpc):
   c = AccelController(mock_cp, mock_mpc, params=MockParams(enabled=True, personality=NORMAL))
   c.smooth_target_accel(-1.0, [-1.0], [0.0], should_stop=False, reset=True)

@@ -82,7 +82,7 @@ class AccelController:
       return self._slew(raw_target_accel)
 
     self._smooth_active = True
-    return self._slew(self.get_decel_target(self._brake_need))
+    return self._slew(min(raw_target_accel, self.get_decel_target(self._brake_need)))
 
   def _compute_brake_need(self, raw_target_accel: float, accel_trajectory: Sequence[float], t_idxs: Sequence[float]) -> float:
     min_accel = float(raw_target_accel)
