@@ -176,14 +176,14 @@ def test_blended_stock_brake_passthrough(mock_cp, mock_mpc):
   assert not c.smooth_active()
 
 
-def test_blended_future_brake_need_passthrough(mock_cp, mock_mpc):
+def test_blended_future_brake_need_still_starts_early_decel(mock_cp, mock_mpc):
   c = AccelController(mock_cp, mock_mpc, params=MockParams(enabled=True, personality=ECO))
   c.smooth_target_accel(0.0, [0.0], [0.0], should_stop=False, reset=True)
 
   out = c.smooth_target_accel(0.1, [0.1, -1.0], [0.0, 1.0], should_stop=False, stock_brake=True)
 
-  assert out == pytest.approx(0.1)
-  assert not c.smooth_active()
+  assert out == pytest.approx(-BRAKE_DEEPENING_JERK[ECO] * DT_MDL)
+  assert c.smooth_active()
 
 
 @pytest.mark.parametrize("raw_target, accel_trajectory, should_stop, crash_cnt", [

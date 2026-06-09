@@ -69,7 +69,7 @@ class AccelController:
       self._bypassed = False
       return self._passthrough(raw_target_accel)
 
-    if stock_brake and (raw_target_accel < 0.0 or self._brake_need >= MIN_SMOOTH_BRAKE_NEED):
+    if stock_brake and raw_target_accel < 0.0:
       self._bypassed = False
       return self._passthrough(raw_target_accel)
 
